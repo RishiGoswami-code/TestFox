@@ -19,10 +19,8 @@ export class OnboardingPanel {
 
     // Setup requirement flags
     private get needsProjectAnalysis(): boolean {
-        // Check if project has been analyzed
-        const { getTestStore } = require('../store/testStore');
-        const testStore = getTestStore();
-        const projectInfo = testStore.getProjectInfo();
+        // Check if project has been analyzed (same key TestStore persists to)
+        const projectInfo = this._context.workspaceState.get('testfox.projectInfo');
         return !projectInfo; // Need analysis if no project info exists
     }
 
@@ -97,8 +95,7 @@ export class OnboardingPanel {
                         await vscode.commands.executeCommand('testfox.configureAI');
                         // Close onboarding panel since AI setup will open
                         setTimeout(() => {
-                            if (OnboardingPanel.currentPanel) {
-                            }
+                            OnboardingPanel.currentPanel?.dispose();
                         }, 1000);
                         return;
                 }

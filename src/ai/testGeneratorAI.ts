@@ -1,5 +1,9 @@
 import * as vscode from 'vscode';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import { AppRunner } from '../core/appRunner';
 import { createAIService, AIProvider } from './aiService';
 import { TestStore } from '../store/testStore';
 import {
@@ -332,8 +336,6 @@ IMPORTANT REQUIREMENTS:
         console.log('🔍 AI Test Generator: Framework:', projectInfo.framework);
 
         try {
-            const axios = require('axios').default;
-            const AppRunner = require('../core/appRunner').AppRunner;
             const appRunner = new AppRunner();
 
             // Check if application is running, if not try to start it
@@ -788,8 +790,6 @@ IMPORTANT REQUIREMENTS:
     }> {
         console.log('📚 AI Test Generator: Gathering application documentation...');
 
-        const fs = require('fs').promises;
-        const path = require('path');
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 
         if (!workspaceFolder) {
@@ -855,8 +855,6 @@ IMPORTANT REQUIREMENTS:
     private async gatherApplicationLogic(projectInfo: any): Promise<string[]> {
         console.log('🧠 AI Test Generator: Gathering core application logic...');
 
-        const fs = require('fs').promises;
-        const path = require('path');
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 
         if (!workspaceFolder) {

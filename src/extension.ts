@@ -1,4 +1,10 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import { exec } from 'child_process';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import { TEST_CATEGORIES } from './types';
+import PostmanMCP from './mcp/postmanMcp';
 import { ProjectDetector } from './core/projectDetector';
 import { CodeAnalyzer } from './core/codeAnalyzer';
 import { AppRunner } from './core/appRunner';
@@ -119,7 +125,6 @@ function logDiagnostic(message: string, type: 'info' | 'warn' | 'error' = 'info'
  */
 async function checkApplicationAvailability(): Promise<string | null> {
     const portsToCheck = [3000, 8080, 4200, 5000, 8000, 4000, 5173];
-    const axios = require('axios').default;
 
     for (const port of portsToCheck) {
         try {
@@ -271,7 +276,7 @@ export async function activate(context: vscode.ExtensionContext) {
         console.log('TestFox: MCPServerManager created');
 
         console.log('TestFox: Creating RuntimeAppAnalyzer...');
-        const { RuntimeAppAnalyzer } = require('./runtime/runtimeAppAnalyzer');
+        const { RuntimeAppAnalyzer } = await import('./runtime/runtimeAppAnalyzer');
         runtimeAppAnalyzer = new RuntimeAppAnalyzer();
         console.log('TestFox: RuntimeAppAnalyzer created');
 
@@ -419,7 +424,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 return defectTracker.getAllDefects();
             case 'runs':
                 return defectTracker.getAllRuns();
-            case 'stats':
+            case 'stats': {
                 const stats = defectTracker.getDefectStats();
                 const runs = defectTracker.getAllRuns();
                 const latestRun = runs[runs.length - 1];
@@ -433,6 +438,7 @@ export async function activate(context: vscode.ExtensionContext) {
                         ? Math.round(runs.reduce((sum, r) => sum + r.passRate, 0) / runs.length)
                         : 0
                 };
+            }
             case 'trends':
                 return {
                     ...defectTracker.getImprovementMetrics(),
@@ -843,7 +849,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
         vscode.commands.registerCommand('testfox.generatePostmanSuite', async () => {
             try {
-                const PostmanMCP = require('./mcp/postmanMcp').default;
                 const postman = new PostmanMCP(context);
                 const analysis = testStore.getAnalysisResult() || {};
                 const { collectionPath, collection } = await postman.generateCollection(analysis);
@@ -857,9 +862,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
         vscode.commands.registerCommand('testfox.runPostmanCollection', async () => {
             try {
-                const fs = require('fs');
-                const path = require('path');
-                const PostmanMCP = require('./mcp/postmanMcp').default;
                 const postman = new PostmanMCP(context);
                 const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
                 const collectionPath = path.join(workspaceRoot, '.testfox', 'postman_collection.json');
@@ -876,8 +878,6 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
 
                 const reportTmp = path.join(workspaceRoot, '.testfox', 'postman_newman_results.json');
-
-                const exec = require('child_process').exec;
 
                 // Helper to check if newman is available via npx
                 const checkNewman = () => new Promise<boolean>((resolve) => {
@@ -1061,7 +1061,6 @@ export async function activate(context: vscode.ExtensionContext) {
                 if (workspaceFolders && workspaceFolders.length > 0) {
                     const reportUri = vscode.Uri.joinPath(workspaceFolders[0].uri, 'testfox-mcp-report.html');
                     const reportPath = reportUri.fsPath;
-                    const fs = require('fs');
                     fs.writeFileSync(reportPath, html);
 
                     // Open in browser
@@ -1103,8 +1102,7 @@ export async function activate(context: vscode.ExtensionContext) {
             try {
                 vscode.window.showInformationMessage('TestFox: Running card validation tests...');
                 // Generate specific card validation tests
-                const testStore = require('./store/testStore').TestStore;
-                const store = new testStore();
+                const store = testStore;
 
                 const cardTests = [
                     {
@@ -1170,8 +1168,7 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('testfox.runPaymentEdgeCases', async () => {
             try {
                 vscode.window.showInformationMessage('TestFox: Running payment edge case tests...');
-                const testStore = require('./store/testStore').TestStore;
-                const store = new testStore();
+                const store = testStore;
 
                 const edgeCaseTests = [
                     {
@@ -1244,8 +1241,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 results.push(playwrightResult);
 
                 // Generate additional payment tests
-                const testStore = require('./store/testStore').TestStore;
-                const store = new testStore();
+                const store = testStore;
 
                 const comprehensiveTests = [
                     {
@@ -1280,7 +1276,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
         vscode.commands.registerCommand('testfox.runMonkeyTesting', async () => {
             try {
-                const { MonkeyTestingRunner } = require('./runners/monkeyTestingRunner');
+                const { MonkeyTestingRunner } = await import('./runners/monkeyTestingRunner');
                 const runner = new MonkeyTestingRunner();
                 
                 // Check if app is running
@@ -1333,8 +1329,7 @@ export async function activate(context: vscode.ExtensionContext) {
                 vscode.window.showInformationMessage('TestFox: Generating payment report...');
 
                 // Generate payment-specific report
-                const testStore = require('./store/testStore').TestStore;
-                const store = new testStore();
+                const store = testStore;
                 const allTests = store.getAllTests();
                 const paymentTests = allTests.filter((test: any) =>
                     test.category.includes('payment') ||
@@ -1466,7 +1461,6 @@ export async function activate(context: vscode.ExtensionContext) {
                 if (workspaceFolders && workspaceFolders.length > 0) {
                     const reportUri = vscode.Uri.joinPath(workspaceFolders[0].uri, 'testfox-payment-report.html');
                     const reportPath = reportUri.fsPath;
-                    const fs = require('fs');
                     fs.writeFileSync(reportPath, html);
 
                     // Open in browser
@@ -1919,7 +1913,6 @@ async function testAIConnectionSilent(): Promise<void> {
     }
 
     try {
-        const axios = require('axios');
         const headers: Record<string, string> = { 'Content-Type': 'application/json' };
         let url = baseUrl.replace(/\/$/, '');
         let body: any;
@@ -2518,7 +2511,6 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
 
     if (!category) {
         // Get all available categories from TEST_CATEGORIES
-        const { TEST_CATEGORIES } = require('./types');
         const categories = TEST_CATEGORIES.map((c: any) => c.id);
         const categoryLabels = categories.map((c: string) => c.charAt(0).toUpperCase() + c.slice(1).replace('_', ' '));
 
@@ -2611,7 +2603,7 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                     progress.report({ message: 'Generating integration tests...' });
                     await generator.generateIntegrationTests();
                     break;
-                case 'database':
+                case 'database': {
                     progress.report({ message: 'Generating database tests...' });
                     const dbGenerator = new DatabaseTestGenerator(workspacePath);
                     const dbTests = await dbGenerator.generateDatabaseTests();
@@ -2620,6 +2612,7 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                         testsGenerated++;
                     }
                     break;
+                }
                 case 'security':
                     progress.report({ message: 'Generating security tests...' });
                     await generator.generateSecurityTests();
@@ -2668,7 +2661,7 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                     progress.report({ message: 'Generating compatibility tests...' });
                     await generator.generateCompatibilityTests();
                     break;
-                case 'ui':
+                case 'ui': {
                     progress.report({ message: 'Generating UI tests...' });
                     const uiGenerator = new UITestGenerator(workspacePath);
                     const uiTests = await uiGenerator.generateUITests();
@@ -2677,7 +2670,8 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                         testsGenerated++;
                     }
                     break;
-                case 'e2e':
+                }
+                case 'e2e': {
                     progress.report({ message: 'Generating E2E tests with AI...' });
                     const projectInfo = testStore.getProjectInfo();
                     if (projectInfo && analysisResult) {
@@ -2689,7 +2683,8 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                         }
                     }
                     break;
-                case 'console_logs':
+                }
+                case 'console_logs': {
                     progress.report({ message: 'Generating console log tests...' });
                     const browserLogGenerator = new BrowserLogTestGenerator();
                     const consoleTests = browserLogGenerator.generateConsoleLogTests();
@@ -2698,7 +2693,8 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                         testsGenerated++;
                     }
                     break;
-                case 'network_logs':
+                }
+                case 'network_logs': {
                     progress.report({ message: 'Generating network log tests...' });
                     const networkLogGenerator = new BrowserLogTestGenerator();
                     const networkTests = networkLogGenerator.generateNetworkLogTests();
@@ -2707,7 +2703,8 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                         testsGenerated++;
                     }
                     break;
-                case 'account_management':
+                }
+                case 'account_management': {
                     progress.report({ message: 'Generating account management tests...' });
                     const accountGenerator = new BrowserLogTestGenerator();
                     const accountTests = accountGenerator.generateAccountManagementTests();
@@ -2716,7 +2713,8 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                         testsGenerated++;
                     }
                     break;
-                case 'payment':
+                }
+                case 'payment': {
                     progress.report({ message: 'Generating payment tests...' });
                     const paymentGen = new PaymentTestGenerator();
                     const analysisWithPayments = testStore.getAnalysisResult() as any;
@@ -2738,6 +2736,7 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                         testsGenerated++;
                     }
                     break;
+                }
                 // Backend Testing Categories
                 case 'backend_idempotency':
                 case 'backend_webhooks':
@@ -2748,7 +2747,7 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                 case 'backend_api_contract':
                 case 'backend_stability':
                 case 'backend_compliance':
-                case 'backend_observability':
+                case 'backend_observability': {
                     progress.report({ message: `Generating ${category} tests...` });
                     const backendGen = new BackendTestGenerator();
                     const allBackendTests = backendGen.generateAllBackendTests();
@@ -2762,6 +2761,7 @@ export async function generateTestCategory(categoryOrItem?: string | { category?
                         vscode.window.showWarningMessage(`TestFox: No tests available for ${category}`);
                     }
                     break;
+                }
                 default:
                     vscode.window.showWarningMessage(`TestFox: Category '${category}' generation not implemented yet`);
                     updateStatus('ready');
@@ -2860,7 +2860,6 @@ export async function runAllTests(): Promise<void> {
     const trigger = 'manual' as const;
 
     // Fire-and-forget: track in runs provider
-    const { v4: uuidv4 } = require('uuid');
     const runId = uuidv4();
     if (testRunsProvider) {
         testRunsProvider.startRun(runId, trigger);
@@ -3218,7 +3217,7 @@ async function runFullCycleTesting(): Promise<void> {
         }
 
         // Get the correct application URL for full cycle testing
-        let appUrlRaw = appRunner.getBaseUrl();
+        const appUrlRaw = appRunner.getBaseUrl();
         let appUrl: string | null = appUrlRaw;
         if (!appUrl) {
             appUrl = await checkApplicationAvailability();
@@ -3472,7 +3471,6 @@ async function runManualCrossBrowserTest(appUrl: string, projectInfo: any): Prom
     }
 
     // Check if the URL is accessible
-    const axios = require('axios').default;
     try {
         await axios.get(appUrl, { timeout: 5000 });
     } catch (error) {

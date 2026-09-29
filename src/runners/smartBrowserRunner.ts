@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import { DiscoveredCredential, TestAccount, CredentialDiscovery } from '../core/credentialDiscovery';
 import { BrowserMonitor, ConsoleTestResult, NetworkTestResult } from '../monitors/browserMonitor';
 
@@ -94,7 +95,7 @@ export class SmartBrowserRunner {
         this.log(`Initializing browser for ${baseUrl}`);
 
         try {
-            const playwright = require('playwright');
+            const playwright = await import('playwright');
             const config = vscode.workspace.getConfiguration('testfox');
             const headless = config.get<boolean>('browserHeadless', true);
 
@@ -347,6 +348,7 @@ export class SmartBrowserRunner {
                     if (type === 'email' || identifier.includes('email')) {
                         await input.fill(credential.email);
                     } else if (type === 'password') {
+                        // Covers both password and confirm-password fields
                         await input.fill(credential.password);
                     } else if (identifier.includes('name') && identifier.includes('first')) {
                         await input.fill('Test');
@@ -358,8 +360,6 @@ export class SmartBrowserRunner {
                         await input.fill(credential.email.split('@')[0]);
                     } else if (identifier.includes('phone') || identifier.includes('tel')) {
                         await input.fill('1234567890');
-                    } else if (identifier.includes('confirm') && type === 'password') {
-                        await input.fill(credential.password);
                     }
                 } catch {
                     // Skip fields that can't be filled
@@ -1228,7 +1228,6 @@ export class SmartBrowserRunner {
             if (!workspaceFolders) return null;
 
             const screenshotDir = `${workspaceFolders[0].uri.fsPath}/.testfox/screenshots`;
-            const fs = require('fs');
             if (!fs.existsSync(screenshotDir)) {
                 fs.mkdirSync(screenshotDir, { recursive: true });
             }

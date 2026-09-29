@@ -170,7 +170,7 @@ export class CrossBrowserRunner {
         const results: CompatibilityResult[] = [];
 
         try {
-            const playwright = require('playwright');
+            const playwright = await import('playwright');
             const browserType = (playwright as any)[browserName];
             
             if (!browserType) {

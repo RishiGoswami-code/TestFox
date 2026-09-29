@@ -194,14 +194,14 @@ export class TestRunsProvider implements vscode.TreeDataProvider<TestRunItem> {
                 .reverse()
                 .slice(0, 50);
 
-            this._runs = files.map(f => {
+            this._runs = files.map((f): TestRunSummary | null => {
                 try {
                     const data = JSON.parse(fs.readFileSync(path.join(runsDir, f), 'utf8'));
                     return {
                         id: data.id || f.replace('.json', ''),
                         timestamp: data.timestamp || data.date || new Date().toISOString(),
                         trigger: data.trigger || 'manual',
-                        status: 'completed' as const,
+                        status: 'completed',
                         duration: data.duration,
                         summary: data.summary || { total: 0, passed: 0, failed: 0, skipped: 0 },
                         categories: data.categories,

@@ -7,6 +7,7 @@
  */
 
 import * as vscode from 'vscode';
+import axios from 'axios';
 
 export class AISetupPanel {
     public static currentPanel: AISetupPanel | undefined;
@@ -46,7 +47,6 @@ export class AISetupPanel {
 
     private async _testConnection(data: { baseUrl: string; apiKey: string; model: string }) {
         try {
-            const axios = require('axios');
             const headers: Record<string, string> = { 'Content-Type': 'application/json' };
             let url = data.baseUrl.replace(/\/$/, '');
             let body: any;

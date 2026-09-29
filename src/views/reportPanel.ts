@@ -2639,7 +2639,7 @@ ${issueContent.labels.map(l => `- ${l}`).join('\n') || 'None'}
             // Handle nav link clicks
             if (target.classList.contains('nav-link')) {
                 e.preventDefault();
-                const tabId = target.getAttribute('onclick').match(/showTab\('([^']+)'\)/)?.[1];
+                const tabId = target.getAttribute('onclick').match(/showTab\\('([^']+)'\\)/)?.[1];
                 if (tabId) {
                     showTab(tabId);
                 }

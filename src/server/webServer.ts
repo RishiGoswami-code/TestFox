@@ -1,6 +1,7 @@
 import express from 'express';
 import { Server as SocketIOServer } from 'socket.io';
 import { createServer, Server as HTTPServer } from 'http';
+import * as net from 'net';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as vscode from 'vscode';
@@ -274,8 +275,6 @@ export class WebServer {
     }
 
     private async findAvailablePort(startPort: number): Promise<number> {
-        const net = require('net');
-
         for (let port = startPort; port < startPort + 100; port++) {
             if (await this.isPortAvailable(port)) {
                 return port;
@@ -287,7 +286,7 @@ export class WebServer {
 
     private isPortAvailable(port: number): Promise<boolean> {
         return new Promise((resolve) => {
-            const server = require('net').createServer();
+            const server = net.createServer();
 
             server.listen(port, 'localhost', () => {
                 server.close(() => resolve(true));

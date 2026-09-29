@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
+import { ProjectDetector } from './projectDetector';
 import { PlaywrightTestGenerator } from '../generators/playwrightTestGenerator';
 import { ChromeDevToolsTestGenerator } from '../generators/chromeDevToolsTestGenerator';
 import { MCPTestRunner } from '../runners/mcpTestRunner';
@@ -109,7 +111,6 @@ export class MCPIntegrationManager {
                 progress.report({ message: 'Analyzing project structure...' });
 
                 // Get project info
-                const { ProjectDetector } = require('../core/projectDetector');
                 const projectDetector = new ProjectDetector();
                 const projectInfo = await projectDetector.detect(projectPath);
 
@@ -231,7 +232,6 @@ export class MCPIntegrationManager {
                 progress.report({ message: 'Analyzing project structure...' });
 
                 // Get project info
-                const { ProjectDetector } = require('../core/projectDetector');
                 const projectDetector = new ProjectDetector();
                 const projectInfo = await projectDetector.detect(projectPath);
 
@@ -428,7 +428,6 @@ export class MCPIntegrationManager {
                 progress.report({ message: 'Generating Playwright tests...' });
                 const generator = new PlaywrightTestGenerator();
                 
-                const { ProjectDetector } = require('../core/projectDetector');
                 const projectDetector = new ProjectDetector();
                 const projectInfo = await projectDetector.detect(projectPath);
                 
@@ -464,8 +463,8 @@ export class MCPIntegrationManager {
      */
     private async generateAPITests(projectPath: string, projectInfo: any): Promise<void> {
         const apiDir = path.join(projectPath, 'tests', 'api');
-        if (!require('fs').existsSync(apiDir)) {
-            require('fs').mkdirSync(apiDir, { recursive: true });
+        if (!fs.existsSync(apiDir)) {
+            fs.mkdirSync(apiDir, { recursive: true });
         }
 
         const openRouter = getOpenRouterService();
@@ -484,7 +483,7 @@ export class MCPIntegrationManager {
             testContent = this.getDefaultAPITests();
         }
 
-        require('fs').writeFileSync(path.join(apiDir, 'api.spec.ts'), testContent);
+        fs.writeFileSync(path.join(apiDir, 'api.spec.ts'), testContent);
     }
 
     /**

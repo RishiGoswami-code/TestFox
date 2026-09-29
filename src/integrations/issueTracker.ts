@@ -28,23 +28,26 @@ export class IssueTracker {
     async verifyConnection(): Promise<{ success: boolean; username?: string; error?: string }> {
         try {
             switch (this.provider) {
-                case 'github':
+                case 'github': {
                     const ghUser = await this.makeRequest('https://api.github.com/user', 'GET', null, {
                         'Authorization': `Bearer ${this.token}`,
                         'Accept': 'application/vnd.github+json',
                         'User-Agent': 'TestFox-Extension'
                     });
                     return { success: true, username: ghUser.login };
-                
-                case 'gitlab':
+                }
+
+                case 'gitlab': {
                     const glUser = await this.makeRequest(`${this.baseUrl || 'https://gitlab.com'}/api/v4/user`, 'GET', null, {
                         'PRIVATE-TOKEN': this.token
                     });
                     return { success: true, username: glUser.username };
+                }
 
-                case 'bitbucket':
+                case 'bitbucket': {
                     const bbUser = await this.makeRequest('https://api.bitbucket.org/2.0/user', 'GET', null, this.getBitbucketHeaders());
                     return { success: true, username: bbUser.username || bbUser.display_name };
+                }
 
                 default:
                     return { success: false, error: 'Unknown provider' };
@@ -83,7 +86,7 @@ export class IssueTracker {
     private async findSimilarIssue(title: string): Promise<string | null> {
         try {
             switch (this.provider) {
-                case 'github':
+                case 'github': {
                     const ghQuery = encodeURIComponent(`repo:${this.owner}/${this.repo} is:issue is:open in:title ${title}`);
                     const ghRes = await this.makeRequest(`https://api.github.com/search/issues?q=${ghQuery}`, 'GET', null, {
                         'Authorization': `Bearer ${this.token}`,
@@ -91,18 +94,21 @@ export class IssueTracker {
                         'User-Agent': 'TestFox-Extension'
                     });
                     return ghRes.items && ghRes.items.length > 0 ? ghRes.items[0].html_url : null;
+                }
 
-                case 'gitlab':
+                case 'gitlab': {
                     const projectPath = encodeURIComponent(`${this.owner}/${this.repo}`);
                     const glRes = await this.makeRequest(`${this.baseUrl || 'https://gitlab.com'}/api/v4/projects/${projectPath}/issues?search=${encodeURIComponent(title)}&state=opened`, 'GET', null, {
                          'PRIVATE-TOKEN': this.token
                     });
                     return glRes && glRes.length > 0 ? glRes[0].web_url : null;
-                
-                case 'bitbucket':
+                }
+
+                case 'bitbucket': {
                     const bbQuery = encodeURIComponent(`title~"${title}" AND state="OPEN"`);
                     const bbRes = await this.makeRequest(`https://api.bitbucket.org/2.0/repositories/${this.owner}/${this.repo}/issues?q=${bbQuery}`, 'GET', null, this.getBitbucketHeaders());
                     return bbRes.values && bbRes.values.length > 0 ? bbRes.values[0].links.html.href : null;
+                }
 
                 default:
                     return null;

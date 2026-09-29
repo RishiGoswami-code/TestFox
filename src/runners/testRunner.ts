@@ -167,7 +167,9 @@ export class TestRunner {
                         timestamp: new Date()
                     });
                 }
-            } catch {}
+            } catch {
+                // Screenshot evidence is best-effort
+            }
 
             return {
                 status: 'failed',

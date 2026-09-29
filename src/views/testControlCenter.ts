@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
+import axios from 'axios';
 import { TestStore } from '../store/testStore';
+import { getOpenRouterClient } from '../ai/openRouterClient';
 import { TestCase, TestResult, TestRunState, LogEntry } from '../types';
 import { IssueTracker, IssueProvider } from '../integrations/issueTracker';
 
@@ -306,7 +308,6 @@ export class TestControlCenterProvider implements vscode.WebviewViewProvider {
         }
 
         try {
-            const { getOpenRouterClient } = require('../ai/openRouterClient');
             const openRouter = getOpenRouterClient();
             const status = openRouter.getState();
 
@@ -348,7 +349,6 @@ export class TestControlCenterProvider implements vscode.WebviewViewProvider {
 
         try {
             // Check ports in parallel with shorter timeout
-            const axios = require('axios').default;
             const portsToCheck = [3000, 8080, 4200, 5000, 8000, 4000, 5173];
             
             // Create parallel requests with shorter timeout (1 second)

@@ -112,13 +112,13 @@ export class CodeAnalyzer {
             // Express: app.get('/path', handler)
             /(?:app|router)\.(get|post|put|patch|delete|all)\s*\(\s*['"`]([^'"`]+)['"`]/gi,
             // NestJS: @Get('/path')
-            /@(Get|Post|Put|Patch|Delete|Head|Options)\s*\(\s*['"`]?([^'"`\)]*)/gi,
+            /@(Get|Post|Put|Patch|Delete|Head|Options)\s*\(\s*['"`]?([^'"`)]*)/gi,
             // FastAPI: @app.get('/path')
             /@(?:app|router)\.(get|post|put|patch|delete)\s*\(\s*['"`]([^'"`]+)['"`]/gi,
             // Flask: @app.route('/path')
             /@(?:app|blueprint)\.route\s*\(\s*['"`]([^'"`]+)['"`](?:.*methods\s*=\s*\[([^\]]+)\])?/gi,
             // Spring: @GetMapping('/path')
-            /@(Get|Post|Put|Patch|Delete)Mapping\s*\(\s*(?:value\s*=\s*)?['"`]?([^'"`\)]*)/gi,
+            /@(Get|Post|Put|Patch|Delete)Mapping\s*\(\s*(?:value\s*=\s*)?['"`]?([^'"`)]*)/gi,
             // Go Gin: r.GET('/path', handler)
             /(?:r|router|g|engine)\.(GET|POST|PUT|PATCH|DELETE)\s*\(\s*['"`]([^'"`]+)['"`]/gi
         ];

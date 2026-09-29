@@ -195,7 +195,7 @@ export class GitCommitHook {
             this.outputChannel.show(true);
 
             // Import and run tests
-            const { runBackgroundTests } = require('./backgroundTestRunner');
+            const { runBackgroundTests } = await import('./backgroundTestRunner');
             
             const result = await runBackgroundTests({
                 context: this.context,

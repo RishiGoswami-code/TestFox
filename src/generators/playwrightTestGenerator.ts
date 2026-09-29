@@ -814,7 +814,7 @@ TestFox AI 🤖
      */
     private cleanGeneratedCode(code: string): string {
         // Remove markdown code blocks if present
-        let cleaned = code.replace(/\`\`\`typescript\n?/g, '').replace(/\`\`\`\n?/g, '');
+        let cleaned = code.replace(/```typescript\n?/g, '').replace(/```\n?/g, '');
         
         // Remove markdown headers
         cleaned = cleaned.replace(/^#+ .*$/gm, '');

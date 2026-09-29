@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import { exec } from 'child_process';
 
 /**
  * MCP Server Configuration
@@ -245,7 +246,6 @@ export class MCPServerManager {
 
         try {
             // Check if the command exists
-            const { exec } = require('child_process');
             const result = await new Promise<{ success: boolean; error?: string }>((resolve) => {
                 exec(`${server.command} --version`, { timeout: 10000 }, (error: any) => {
                     if (error) {

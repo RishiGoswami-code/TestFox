@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as cp from 'child_process';
 import * as path from 'path';
 import * as net from 'net';
+import axios from 'axios';
 import { ProjectInfo } from '../types';
 
 /**
@@ -20,7 +21,7 @@ export class AppRunner {
     /**
      * Detect if application is already running on common development ports
      */
-    private async detectRunningApplication(projectInfo: ProjectInfo): Promise<string | null> {
+    async detectRunningApplication(projectInfo: ProjectInfo): Promise<string | null> {
         console.log(`AppRunner: Detecting running app, configured port: ${projectInfo.port}`);
 
         // Common development ports to check
@@ -96,7 +97,6 @@ export class AppRunner {
     private async verifyUrl(url: string): Promise<boolean> {
         try {
             console.log(`AppRunner: Making HTTP request to ${url}`);
-            const axios = require('axios').default;
             const response = await axios.get(url, {
                 timeout: 2000,
                 validateStatus: () => true // Accept any status code
@@ -465,7 +465,6 @@ export class AppRunner {
             return null;
         }
 
-        const axios = require('axios').default;
         const startTime = Date.now();
 
         while (Date.now() - startTime < timeout) {

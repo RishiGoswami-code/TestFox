@@ -1,8 +1,14 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { PlaywrightTestGenerator } from '../generators/playwrightTestGenerator';
 import { getOpenRouterService } from '../ai/openRouterService';
 import { AppRunner } from '../core/appRunner';
 import { ProjectInfo } from '../types';
+
+const execAsync = promisify(exec);
 
 /**
  * MCP Test Runner - Manages running tests from different MCP servers
@@ -109,13 +115,10 @@ export class MCPTestRunner {
         this.onTestRunUpdate.fire(result);
 
         try {
-            const { exec } = require('child_process');
-            const util = require('util');
-            const execAsync = util.promisify(exec);
 
             // Check if Playwright is installed
             const playwrightDir = `${options.projectPath}/tests/playwright`;
-            if (!require('fs').existsSync(playwrightDir)) {
+            if (!fs.existsSync(playwrightDir)) {
                 throw new Error('Playwright tests not found. Please generate tests first.');
             }
 
@@ -330,13 +333,10 @@ export class MCPTestRunner {
         this.onTestRunUpdate.fire(result);
 
         try {
-            const { exec } = require('child_process');
-            const util = require('util');
-            const execAsync = util.promisify(exec);
 
             // Check if Chrome DevTools tests exist
             const devtoolsDir = `${options.projectPath}/tests/chrome-devtools`;
-            if (!require('fs').existsSync(devtoolsDir)) {
+            if (!fs.existsSync(devtoolsDir)) {
                 throw new Error('Chrome DevTools tests not found. Please generate tests first.');
             }
 
@@ -596,9 +596,6 @@ export class MCPTestRunner {
         const tests: TestResult[] = [];
         
         try {
-            const { exec } = require('child_process');
-            const util = require('util');
-            const execAsync = util.promisify(exec);
 
             // Check if QA Use MCP is available
             const qaUsePath = `${options.projectPath}/../qa-use-mcp`;
@@ -643,9 +640,6 @@ export class MCPTestRunner {
      * Generate HTML report for test results
      */
     private async generateHTMLReport(result: MCPRunResult, projectPath: string): Promise<string> {
-        const fs = require('fs');
-        const path = require('path');
-        
         const reportsDir = path.join(projectPath, 'tests', 'playwright', 'reports');
         if (!fs.existsSync(reportsDir)) {
             fs.mkdirSync(reportsDir, { recursive: true });

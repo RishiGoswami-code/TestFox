@@ -98,7 +98,7 @@ export class SettingsPanel {
                             try {
                                 const baseUrl = message.baseUrl || 'http://localhost:11434';
                                 const ai = createAIService({ provider: AIProvider.OLLAMA, baseUrl, model: undefined });
-                                let available = await ai.isAvailable();
+                                const available = await ai.isAvailable();
                                 if (!available) {
                                     // Try running the helper script to install/start Ollama
                                     try {

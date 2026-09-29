@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import axios from 'axios';
 
 /**
  * Background Test Runner - Runs tests automatically and generates reports
@@ -39,9 +40,9 @@ export async function runBackgroundTests(options: BackgroundTestOptions): Promis
 
     try {
         // Get test store and run tests
-        const { TestStore } = require('../store/testStore');
-        const { TestRunner } = require('../runners/testRunner');
-        const { AppRunner } = require('../core/appRunner');
+        const { TestStore } = await import('../store/testStore');
+        const { TestRunner } = await import('../runners/testRunner');
+        const { AppRunner } = await import('../core/appRunner');
 
         // Initialize components - pass context to TestStore
         const testStore = new TestStore(context);
@@ -93,7 +94,7 @@ export async function runBackgroundTests(options: BackgroundTestOptions): Promis
             onProgress?.(progress);
 
             try {
-                const result = await testRunner.runTest(test, appUrl);
+                const result = await testRunner.runTest(test);
                 results.push(result);
                 
                 if (result.status === 'passed') {
@@ -176,7 +177,6 @@ async function ensureApplicationRunning(
     testStore: any, 
     outputChannel: vscode.OutputChannel
 ): Promise<string | null> {
-    const axios = require('axios').default;
     const portsToCheck = [3000, 5173, 8080, 4200, 5000, 8000, 4000];
 
     // Check if app is already running

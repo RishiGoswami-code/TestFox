@@ -436,13 +436,15 @@ ${contextData.coreLogic.substring(0, 2000)}...`;
                     // Use enhanced context-aware generation for test cases
                     return await this.generateTestCasesWithContext(request);
 
-                case 'test-details':
+                case 'test-details': {
                     const details = await this.openRouterClient.generateTestDetails(request.context.testName);
                     return { success: true, data: details };
+                }
 
-                case 'payloads':
+                case 'payloads': {
                     const payloads = await this.openRouterClient.generateSecurityPayloads(request.context);
                     return { success: true, data: payloads };
+                }
 
                 default:
                     return { success: false, error: `Unsupported generation type: ${request.type}` };

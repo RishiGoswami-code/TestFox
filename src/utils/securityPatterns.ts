@@ -67,7 +67,7 @@ export const SecurityPatterns = {
         '....//....//....//etc/passwd',
         '..%252f..%252f..%252fetc/passwd',
         '%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd',
-        '....\/....\/....\/etc/passwd',
+        '....\\/....\\/....\\/etc/passwd',
         '..%c0%af..%c0%af..%c0%afetc/passwd',
         '..%255c..%255c..%255cwindows/system32/config/sam',
         '/var/www/../../etc/passwd',
