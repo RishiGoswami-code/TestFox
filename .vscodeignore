@@ -9,6 +9,7 @@ src/**
 .gitignore
 .eslintrc.json
 tsconfig.json
+tsconfig.test.json
 **/*.map
 
 # Development files - exclude most node_modules but keep runtime deps
