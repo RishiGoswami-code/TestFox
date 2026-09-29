@@ -8,6 +8,18 @@ import { IssueCreator } from '../core/issueCreator';
 import { GitIntegration } from '../core/gitIntegration';
 
 /**
+ * Escape text that comes from the tested application before inserting it into webview HTML
+ */
+function escapeHtml(value: unknown): string {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
  * Interactive webview report panel
  */
 export class ReportPanel {
@@ -305,7 +317,7 @@ ${issueContent.labels.map(l => `- ${l}`).join('\n') || 'None'}
                     if (repositories.length > 0) {
                         const repo = repositories[0];
                         branch = repo.state.HEAD?.name || 'HEAD';
-                        const remote = repo.state.remotes.find(r => r.name === 'origin');
+                        const remote = repo.state.remotes.find((r: { name: string }) => r.name === 'origin');
                         remoteUrl = remote?.fetchUrl || '';
                     }
                 }
@@ -322,7 +334,7 @@ ${issueContent.labels.map(l => `- ${l}`).join('\n') || 'None'}
             };
         } catch (error) {
             console.log('Git information gathering failed:', error);
-            return { available: false, error: error.message };
+            return { available: false, error: error instanceof Error ? error.message : String(error) };
         }
     }
 
@@ -445,6 +457,34 @@ ${issueContent.labels.map(l => `- ${l}`).join('\n') || 'None'}
     }
 
     /**
+     * Monkey test result shaped for the report, or null if monkey testing hasn't run
+     */
+    private getMonkeyReportData() {
+        const result = this.testStore?.getMonkeyTestResult();
+        if (!result) {
+            return null;
+        }
+
+        // clickStats is a Map in memory, but a plain object once restored from workspaceState
+        type ClickStat = { count: number; elementType: string; text: string };
+        const stats: ClickStat[] = result.clickStats instanceof Map
+            ? Array.from(result.clickStats.values())
+            : Object.values((result.clickStats || {}) as Record<string, ClickStat>);
+
+        const clickSummary = stats
+            .map(stat => ({ element: stat.text || stat.elementType, count: stat.count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+
+        return {
+            ...result,
+            errors: result.errors || [],
+            screenshots: result.screenshots || [],
+            clickSummary
+        };
+    }
+
+    /**
      * Prepare comprehensive chart data
      */
     private prepareChartData(categoryStats: any[], trendData: any, performanceMetrics: any, executionMetadata: any): any {
@@ -552,6 +592,12 @@ ${issueContent.labels.map(l => `- ${l}`).join('\n') || 'None'}
         securityFindings: any[], passRate: number,
         formatDuration: (ms: number) => string, formatTimestamp: (iso: string) => string
     ): string {
+        // Status totals for the chart legend (same figures as the status chart)
+        const totalPassed = categoryStats.reduce((sum, c) => sum + (c?.passed || 0), 0);
+        const totalFailed = categoryStats.reduce((sum, c) => sum + (c?.failed || 0), 0);
+        const totalPending = categoryStats.reduce((sum, c) => sum + (c?.pending || 0), 0);
+
+        const monkeyTestResult = this.getMonkeyReportData();
 
         return `<!DOCTYPE html>
 <html lang="en">
@@ -1669,7 +1715,7 @@ ${issueContent.labels.map(l => `- ${l}`).join('\n') || 'None'}
                             <i class="fas fa-lightbulb"></i> Recommendations
                         </h4>
                         <ul style="list-style: none; padding: 0;">
-                            ${aiSummary.recommendations.map(r => `<li style="padding: 8px 0; border-bottom: 1px solid var(--border-light); color: var(--text-secondary);"><i class="fas fa-arrow-right" style="color: var(--accent); margin-right: 8px;"></i>${r}</li>`).join('')}
+                            ${aiSummary.recommendations.map((r: string) => `<li style="padding: 8px 0; border-bottom: 1px solid var(--border-light); color: var(--text-secondary);"><i class="fas fa-arrow-right" style="color: var(--accent); margin-right: 8px;"></i>${r}</li>`).join('')}
                 </ul>
             </div>
             ` : ''}
@@ -2016,7 +2062,7 @@ ${issueContent.labels.map(l => `- ${l}`).join('\n') || 'None'}
                             <i class="fas fa-clock"></i>
                         </div>
                         <div class="metric-title">Duration</div>
-                        <div class="metric-value">${formatDuration(monkeyTestResult.duration)}</div>
+                        <div class="metric-value">${monkeyTestResult.duration !== undefined ? formatDuration(monkeyTestResult.duration) : 'N/A'}</div>
                         <div class="metric-subtitle">test execution time</div>
                     </div>
 
@@ -2041,7 +2087,7 @@ ${issueContent.labels.map(l => `- ${l}`).join('\n') || 'None'}
                                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
                                     <div style="display: flex; align-items: center; gap: 12px;">
                                         <div style="width: 12px; height: 12px; border-radius: 50%; background: var(--accent);"></div>
-                                        <span style="color: var(--text-primary); font-weight: 500;">${item.element}</span>
+                                        <span style="color: var(--text-primary); font-weight: 500;">${escapeHtml(item.element)}</span>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 16px;">
                                         <div style="width: 150px; height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden;">
@@ -2067,7 +2113,7 @@ ${issueContent.labels.map(l => `- ${l}`).join('\n') || 'None'}
                         <div style="display: grid; gap: 16px;">
                             ${monkeyTestResult.errors.map((error: string) => `
                                 <div style="padding: 16px; background: var(--error-bg); border-radius: 8px; border-left: 4px solid var(--error);">
-                                    <p style="margin: 0; color: var(--text-primary);">${error}</p>
+                                    <p style="margin: 0; color: var(--text-primary);">${escapeHtml(error)}</p>
                                 </div>
                             `).join('')}
                         </div>

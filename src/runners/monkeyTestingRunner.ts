@@ -13,6 +13,7 @@ export class MonkeyTestingRunner {
     private totalClicks: number = 0;
     private screenshots: string[] = [];
     private errors: string[] = [];
+    private startTime = 0;
 
     constructor() {
         this.outputChannel = vscode.window.createOutputChannel('TestFox Monkey Testing');
@@ -33,6 +34,7 @@ export class MonkeyTestingRunner {
         this.totalClicks = 0;
         this.screenshots = [];
         this.errors = [];
+        this.startTime = Date.now();
 
         let browser: Browser | undefined;
         let context: BrowserContext | undefined;
@@ -229,7 +231,8 @@ export class MonkeyTestingRunner {
             screenshots: [...this.screenshots],
             errors: [...this.errors],
             success: this.totalClicks > 0 && this.errors.length < this.totalClicks * 0.5,
-            timestamp: new Date()
+            timestamp: new Date(),
+            duration: Date.now() - this.startTime
         };
     }
 
@@ -263,4 +266,6 @@ export interface MonkeyTestResult {
     errors: string[];
     success: boolean;
     timestamp: Date;
+    /** Total run time in ms (absent in results saved by older versions) */
+    duration?: number;
 }
