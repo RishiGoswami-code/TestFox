@@ -1541,15 +1541,15 @@ export async function activate(context: vscode.ExtensionContext) {
         console.error('Failed to set up configuration listener:', error);
     }
 
-    try {
-        // Auto-initialize on activation
-        console.log('Starting auto-initialization...');
-        await autoInitialize(context);
-        console.log('Auto-initialization completed');
-    } catch (error) {
-        console.error('Auto-initialization failed:', error);
-        vscode.window.showWarningMessage('TestFox: Auto-initialization failed. You can still use manual commands.');
-    }
+    // Auto-initialize in the background - NON-BLOCKING
+    // (dependency checks, project analysis and AI connection tests can take many seconds)
+    console.log('Starting auto-initialization...');
+    autoInitialize(context)
+        .then(() => console.log('Auto-initialization completed'))
+        .catch((error) => {
+            console.error('Auto-initialization failed:', error);
+            vscode.window.showWarningMessage('TestFox: Auto-initialization failed. You can still use manual commands.');
+        });
 
     try {
         // Start the test scheduler
