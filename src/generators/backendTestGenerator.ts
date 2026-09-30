@@ -47,11 +47,11 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Send initial POST /orders request with valid payload and idempotency key',
                     action: 'api_call',
                     selector: 'POST /orders',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         cartId: 'cart_123',
                         paymentAuthId: 'auth_456',
                         idempotencyKey: 'order_key_789'
@@ -59,11 +59,11 @@ export class BackendTestGenerator {
                     expected: 'Order created successfully with 201 status'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Retry the same request with the same idempotency key',
                     action: 'api_call',
                     selector: 'POST /orders',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         cartId: 'cart_123',
                         paymentAuthId: 'auth_456',
                         idempotencyKey: 'order_key_789'
@@ -71,11 +71,11 @@ export class BackendTestGenerator {
                     expected: 'Same order returned with 200 status, no new order created'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Retry again after a delay to simulate network retry',
                     action: 'api_call',
                     selector: 'POST /orders',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         cartId: 'cart_123',
                         paymentAuthId: 'auth_456',
                         idempotencyKey: 'order_key_789'
@@ -83,11 +83,11 @@ export class BackendTestGenerator {
                     expected: 'Same order returned, no duplicates in database'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Query database to verify only one order exists',
                     action: 'db_query',
                     selector: 'SELECT COUNT(*) FROM orders WHERE idempotency_key = ?',
-                    value: 'order_key_789',
+                    data: 'order_key_789',
                     expected: 'Count equals 1'
                 }
             ],
@@ -118,11 +118,11 @@ export class BackendTestGenerator {
                 ],
                 steps: [
                     {
-                        id: '1',
+                        order: 1,
                         description: 'Send PAYMENT.CAPTURED webhook event',
                         action: 'webhook_call',
                         selector: 'POST /webhooks/paypal',
-                        value: JSON.stringify({
+                        data: JSON.stringify({
                             event_type: 'PAYMENT.CAPTURED',
                             resource: {
                                 id: 'PAY-123456',
@@ -134,11 +134,11 @@ export class BackendTestGenerator {
                         expected: 'Webhook processed, order state updated to CAPTURED'
                     },
                     {
-                        id: '2',
+                        order: 2,
                         description: 'Send PAYMENT.AUTHORIZED webhook event after CAPTURED',
                         action: 'webhook_call',
                         selector: 'POST /webhooks/paypal',
-                        value: JSON.stringify({
+                        data: JSON.stringify({
                             event_type: 'PAYMENT.AUTHORIZED',
                             resource: {
                                 id: 'PAY-123456',
@@ -150,19 +150,19 @@ export class BackendTestGenerator {
                         expected: 'Webhook processed but order state remains CAPTURED'
                     },
                     {
-                        id: '3',
+                        order: 3,
                         description: 'Query order state from database',
                         action: 'db_query',
                         selector: 'SELECT status FROM orders WHERE id = ?',
-                        value: 'order_789',
+                        data: 'order_789',
                         expected: 'Status is CAPTURED, not reverted to AUTHORIZED'
                     },
                     {
-                        id: '4',
+                        order: 4,
                         description: 'Check webhook processing logs',
                         action: 'log_check',
                         selector: 'webhook_processor',
-                        value: 'Event ordering prevented backward transition',
+                        data: 'Event ordering prevented backward transition',
                         expected: 'Logs show state machine prevented invalid transition'
                     }
                 ],
@@ -186,11 +186,11 @@ export class BackendTestGenerator {
                 ],
                 steps: [
                     {
-                        id: '1',
+                        order: 1,
                         description: 'Send valid Stripe webhook with correct signature',
                         action: 'webhook_call',
                         selector: 'POST /webhooks/stripe',
-                        value: JSON.stringify({
+                        data: JSON.stringify({
                             id: 'evt_valid_123',
                             type: 'payment_intent.succeeded',
                             data: { object: { id: 'pi_123', amount: 5000 } },
@@ -199,11 +199,11 @@ export class BackendTestGenerator {
                         expected: 'Webhook accepted with 200 status'
                     },
                     {
-                        id: '2',
+                        order: 2,
                         description: 'Send webhook with invalid signature',
                         action: 'webhook_call',
                         selector: 'POST /webhooks/stripe',
-                        value: JSON.stringify({
+                        data: JSON.stringify({
                             id: 'evt_invalid_456',
                             type: 'payment_intent.succeeded',
                             data: { object: { id: 'pi_456', amount: 5000 } },
@@ -212,11 +212,11 @@ export class BackendTestGenerator {
                         expected: 'Webhook rejected with 401 status'
                     },
                     {
-                        id: '3',
+                        order: 3,
                         description: 'Send webhook with missing signature',
                         action: 'webhook_call',
                         selector: 'POST /webhooks/stripe',
-                        value: JSON.stringify({
+                        data: JSON.stringify({
                             id: 'evt_nosig_789',
                             type: 'payment_intent.succeeded',
                             data: { object: { id: 'pi_789', amount: 5000 } }
@@ -224,11 +224,11 @@ export class BackendTestGenerator {
                         expected: 'Webhook rejected with 401 status'
                     },
                     {
-                        id: '4',
+                        order: 4,
                         description: 'Verify security logs for rejected webhooks',
                         action: 'log_check',
                         selector: 'security_logs',
-                        value: 'Invalid webhook signature',
+                        data: 'Invalid webhook signature',
                         expected: 'Security logs show signature verification failures'
                     }
                 ],
@@ -252,11 +252,11 @@ export class BackendTestGenerator {
                 ],
                 steps: [
                     {
-                        id: '1',
+                        order: 1,
                         description: 'Send webhook that will timeout during processing',
                         action: 'webhook_call',
                         selector: 'POST /webhooks/slow',
-                        value: JSON.stringify({
+                        data: JSON.stringify({
                             id: 'evt_slow_001',
                             type: 'slow_processing_event',
                             processing_time: 35000
@@ -264,26 +264,26 @@ export class BackendTestGenerator {
                         expected: 'Request times out after 30 seconds'
                     },
                     {
-                        id: '2',
+                        order: 2,
                         description: 'Check webhook status in queue',
                         action: 'db_query',
                         selector: 'SELECT status FROM webhook_queue WHERE event_id = ?',
-                        value: 'evt_slow_001',
+                        data: 'evt_slow_001',
                         expected: 'Status is failed or retry_pending'
                     },
                     {
-                        id: '3',
+                        order: 3,
                         description: 'Wait for retry mechanism to trigger',
                         action: 'wait',
                         selector: '60000ms',
                         expected: 'Retry attempts are made with exponential backoff'
                     },
                     {
-                        id: '4',
+                        order: 4,
                         description: 'Verify dead letter queue for failed webhooks',
                         action: 'db_query',
                         selector: 'SELECT COUNT(*) FROM webhook_dead_letter WHERE event_id = ?',
-                        value: 'evt_slow_001',
+                        data: 'evt_slow_001',
                         expected: 'Event moved to dead letter queue after max retries'
                     }
                 ],
@@ -314,19 +314,19 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Verify initial inventory stock',
                     action: 'db_query',
                     selector: 'SELECT stock_quantity FROM inventory WHERE sku = ?',
-                    value: 'SKU-123',
+                    data: 'SKU-123',
                     expected: 'Stock quantity equals 1'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Fire two parallel POST /reserve-stock requests simultaneously',
                     action: 'concurrent_api_calls',
                     selector: 'POST /reserve-stock',
-                    value: JSON.stringify([
+                    data: JSON.stringify([
                         {
                             sku: 'SKU-123',
                             quantity: 1,
@@ -343,19 +343,19 @@ export class BackendTestGenerator {
                     expected: 'One request succeeds (200), one fails (409 Conflict)'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Verify final inventory stock',
                     action: 'db_query',
                     selector: 'SELECT stock_quantity FROM inventory WHERE sku = ?',
-                    value: 'SKU-123',
+                    data: 'SKU-123',
                     expected: 'Stock quantity equals 0 (not negative)'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Check reservation records',
                     action: 'db_query',
                     selector: 'SELECT COUNT(*) FROM inventory_reservations WHERE sku = ? AND status = ?',
-                    value: ['SKU-123', 'active'],
+                    data: JSON.stringify(['SKU-123', 'active']),
                     expected: 'Count equals 1 (only one successful reservation)'
                 }
             ],
@@ -385,61 +385,61 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Verify order is in AUTHORIZED state',
                     action: 'db_query',
                     selector: 'SELECT status FROM orders WHERE id = ?',
-                    value: 'order_123',
+                    data: 'order_123',
                     expected: 'Status is AUTHORIZED'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Verify inventory is reserved',
                     action: 'db_query',
                     selector: 'SELECT status FROM inventory_reservations WHERE order_id = ?',
-                    value: 'order_123',
+                    data: 'order_123',
                     expected: 'Status is RESERVED'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Cancel the order',
                     action: 'api_call',
                     selector: 'POST /orders/order_123/cancel',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         reason: 'customer_request',
                         refundRequired: true
                     }),
                     expected: 'Order cancelled successfully (200 status)'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Verify order state changed to CANCELLED',
                     action: 'db_query',
                     selector: 'SELECT status FROM orders WHERE id = ?',
-                    value: 'order_123',
+                    data: 'order_123',
                     expected: 'Status is CANCELLED'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Verify inventory reservation is released',
                     action: 'db_query',
                     selector: 'SELECT status FROM inventory_reservations WHERE order_id = ?',
-                    value: 'order_123',
+                    data: 'order_123',
                     expected: 'Status is RELEASED'
                 },
                 {
-                    id: '6',
+                    order: 6,
                     description: 'Wait for background cleanup and verify no re-reservation',
                     action: 'wait',
                     selector: '5000ms',
                     expected: 'Background jobs complete'
                 },
                 {
-                    id: '7',
+                    order: 7,
                     description: 'Verify inventory stock is restored',
                     action: 'db_query',
                     selector: 'SELECT stock_quantity FROM inventory WHERE sku = ?',
-                    value: 'SKU-123',
+                    data: 'SKU-123',
                     expected: 'Stock quantity increased by cancelled order amount'
                 }
             ],
@@ -463,43 +463,43 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Verify payment is in CAPTURED state',
                     action: 'db_query',
                     selector: 'SELECT status FROM payments WHERE id = ?',
-                    value: 'pay_456',
+                    data: 'pay_456',
                     expected: 'Status is CAPTURED'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Attempt invalid transition CAPTURED -> AUTHORIZED',
                     action: 'api_call',
                     selector: 'POST /payments/pay_456/authorize',
-                    value: JSON.stringify({ reason: 'test_invalid' }),
+                    data: JSON.stringify({ reason: 'test_invalid' }),
                     expected: 'Request rejected (400 status) - invalid state transition'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Attempt invalid transition CAPTURED -> PENDING',
                     action: 'db_call',
                     selector: 'UPDATE payments SET status = ? WHERE id = ?',
-                    value: ['PENDING', 'pay_456'],
+                    data: JSON.stringify(['PENDING', 'pay_456']),
                     expected: 'Database constraint violation or transaction rollback'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Verify payment remains in CAPTURED state',
                     action: 'db_query',
                     selector: 'SELECT status FROM payments WHERE id = ?',
-                    value: 'pay_456',
+                    data: 'pay_456',
                     expected: 'Status is still CAPTURED, no change occurred'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Check state transition audit logs',
                     action: 'log_check',
                     selector: 'state_machine_audit',
-                    value: 'pay_456',
+                    data: 'pay_456',
                     expected: 'Audit log shows rejected transition attempts'
                 }
             ],
@@ -523,51 +523,51 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Create cart and reserve inventory',
                     action: 'api_call',
                     selector: 'POST /carts',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         items: [{ sku: 'SKU-789', qty: 5 }]
                     }),
                     expected: 'Cart created, inventory reserved'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Verify inventory is reserved',
                     action: 'db_query',
                     selector: 'SELECT reserved_quantity FROM inventory WHERE sku = ?',
-                    value: 'SKU-789',
+                    data: 'SKU-789',
                     expected: 'Reserved quantity equals 5'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Simulate 30 minutes of inactivity',
                     action: 'time_travel',
                     selector: '1800000ms',
                     expected: 'System time advanced by 30 minutes'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Trigger background cleanup job',
                     action: 'job_trigger',
                     selector: 'cart_cleanup_worker',
                     expected: 'Cleanup job executes'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Verify cart is marked as expired',
                     action: 'db_query',
                     selector: 'SELECT status FROM carts WHERE id = ?',
-                    value: 'cart_new',
+                    data: 'cart_new',
                     expected: 'Status is EXPIRED'
                 },
                 {
-                    id: '6',
+                    order: 6,
                     description: 'Verify inventory reservation released',
                     action: 'db_query',
                     selector: 'SELECT reserved_quantity FROM inventory WHERE sku = ?',
-                    value: 'SKU-789',
+                    data: 'SKU-789',
                     expected: 'Reserved quantity equals 0'
                 }
             ],
@@ -597,11 +597,11 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Send initial webhook payload',
                     action: 'webhook_call',
                     selector: 'POST /webhooks/stripe',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         id: 'evt_1234567890',
                         type: 'payment_intent.succeeded',
                         data: {
@@ -616,11 +616,11 @@ export class BackendTestGenerator {
                     expected: 'Webhook processed successfully (200 status)'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Send identical webhook payload (duplicate 1)',
                     action: 'webhook_call',
                     selector: 'POST /webhooks/stripe',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         id: 'evt_1234567890',
                         type: 'payment_intent.succeeded',
                         data: {
@@ -635,11 +635,11 @@ export class BackendTestGenerator {
                     expected: 'Webhook ignored (200 status, no processing)'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Send identical webhook payload (duplicate 2)',
                     action: 'webhook_call',
                     selector: 'POST /webhooks/stripe',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         id: 'evt_1234567890',
                         type: 'payment_intent.succeeded',
                         data: {
@@ -654,11 +654,11 @@ export class BackendTestGenerator {
                     expected: 'Webhook ignored (200 status, no processing)'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Send identical webhook payload (duplicate 3)',
                     action: 'webhook_call',
                     selector: 'POST /webhooks/stripe',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         id: 'evt_1234567890',
                         type: 'payment_intent.succeeded',
                         data: {
@@ -673,19 +673,19 @@ export class BackendTestGenerator {
                     expected: 'Webhook ignored (200 status, no processing)'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Verify event processed only once in database',
                     action: 'db_query',
                     selector: 'SELECT COUNT(*) FROM webhook_events WHERE event_id = ?',
-                    value: 'evt_1234567890',
+                    data: 'evt_1234567890',
                     expected: 'Count equals 1'
                 },
                 {
-                    id: '6',
+                    order: 6,
                     description: 'Check idempotency logs',
                     action: 'log_check',
                     selector: 'webhook_processor',
-                    value: 'Duplicate webhook detected',
+                    data: 'Duplicate webhook detected',
                     expected: 'Logs show duplicate detection and skipping'
                 }
             ],
@@ -709,51 +709,51 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Force external API to return 503 errors',
                     action: 'mock_service',
                     selector: 'external_payment_api',
-                    value: JSON.stringify({ status: 503, error: 'Service Unavailable' }),
+                    data: JSON.stringify({ status: 503, error: 'Service Unavailable' }),
                     expected: 'Mock service configured to fail'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Initiate API call that will trigger retry',
                     action: 'api_call',
                     selector: 'POST /payments/external',
-                    value: JSON.stringify({ amount: 100, currency: 'USD' }),
+                    data: JSON.stringify({ amount: 100, currency: 'USD' }),
                     expected: 'Request initiated, retry loop begins'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Measure retry intervals (should follow exponential backoff)',
                     action: 'measure_delays',
                     selector: 'retry_attempts',
-                    value: '4',
+                    data: '4',
                     expected: 'Delays are approximately 1s, 2s, 4s, 8s'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Verify total request count matches retry attempts',
                     action: 'metric_check',
                     selector: 'external_api_calls_total',
-                    value: 'pay_ext_001',
+                    data: 'pay_ext_001',
                     expected: 'Total calls equals initial + 4 retries = 5'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Restore external API to success',
                     action: 'mock_service',
                     selector: 'external_payment_api',
-                    value: JSON.stringify({ status: 200, transactionId: 'txn_success' }),
+                    data: JSON.stringify({ status: 200, transactionId: 'txn_success' }),
                     expected: 'Mock service configured to succeed'
                 },
                 {
-                    id: '6',
+                    order: 6,
                     description: 'Verify successful response after retries',
                     action: 'db_query',
                     selector: 'SELECT status FROM payments WHERE id = ?',
-                    value: 'pay_ext_001',
+                    data: 'pay_ext_001',
                     expected: 'Status is COMPLETED'
                 }
             ],
@@ -777,51 +777,51 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Check current connection pool status',
                     action: 'db_monitor',
                     selector: 'connection_pool',
-                    value: 'active_connections',
+                    data: 'active_connections',
                     expected: 'Less than max pool size connections active'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Spawn 20 concurrent DB-intensive requests',
                     action: 'concurrent_requests',
                     selector: 'POST /orders/bulk-create',
-                    value: JSON.stringify({ count: 20, delay: 2000 }),
+                    data: JSON.stringify({ count: 20, delay: 2000 }),
                     expected: 'All 20 requests initiated simultaneously'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Monitor connection pool during peak load',
                     action: 'db_monitor',
                     selector: 'connection_pool',
-                    value: 'active_connections',
+                    data: 'active_connections',
                     expected: 'Pool reaches max capacity, queue forms'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Verify queued requests wait for available connections',
                     action: 'metric_check',
                     selector: 'request_queue_time',
-                    value: 'bulk_requests',
+                    data: 'bulk_requests',
                     expected: 'Queue times are non-zero, less than timeout'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Verify no connection leaks after requests complete',
                     action: 'db_monitor',
                     selector: 'connection_pool',
-                    value: 'active_connections',
+                    data: 'active_connections',
                     expected: 'All connections returned to pool, count back to baseline'
                 },
                 {
-                    id: '6',
+                    order: 6,
                     description: 'Check for connection timeout errors',
                     action: 'log_check',
                     selector: 'error_logs',
-                    value: 'Connection acquisition timeout',
+                    data: 'Connection acquisition timeout',
                     expected: 'No timeout errors if pool size is adequate'
                 }
             ],
@@ -851,11 +851,11 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Initiate payment and order creation flow',
                     action: 'api_call',
                     selector: 'POST /checkout',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         cartId: 'cart_456',
                         paymentMethod: 'card',
                         amount: 14999
@@ -863,11 +863,11 @@ export class BackendTestGenerator {
                     expected: 'Checkout process starts'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Simulate PayPal authorization success',
                     action: 'mock_service',
                     selector: 'paypal_api',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         status: 'success',
                         transactionId: 'txn_789',
                         amount: 14999
@@ -875,49 +875,49 @@ export class BackendTestGenerator {
                     expected: 'Payment authorization succeeds'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Force Order Service database failure during creation',
                     action: 'db_failure',
                     selector: 'order_service_db',
-                    value: 'connection_timeout',
+                    data: 'connection_timeout',
                     expected: 'Order service DB operation fails'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Verify payment was captured but order was not created',
                     action: 'db_query',
                     selector: 'SELECT COUNT(*) FROM payments WHERE transaction_id = ? AND status = ?',
-                    value: ['txn_789', 'captured'],
+                    data: JSON.stringify(['txn_789', 'captured']),
                     expected: 'Payment exists and is captured'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Verify no order was created',
                     action: 'db_query',
                     selector: 'SELECT COUNT(*) FROM orders WHERE payment_transaction_id = ?',
-                    value: 'txn_789',
+                    data: 'txn_789',
                     expected: 'Count equals 0'
                 },
                 {
-                    id: '6',
+                    order: 6,
                     description: 'Trigger retry/compensation job',
                     action: 'job_trigger',
                     selector: 'failure_recovery_worker',
                     expected: 'Recovery job starts processing'
                 },
                 {
-                    id: '7',
+                    order: 7,
                     description: 'Wait for recovery completion',
                     action: 'wait',
                     selector: '10000ms',
                     expected: 'Recovery process completes'
                 },
                 {
-                    id: '8',
+                    order: 8,
                     description: 'Verify final state - either order created or payment voided',
                     action: 'db_query',
                     selector: 'SELECT o.id as order_id, p.status as payment_status FROM orders o RIGHT JOIN payments p ON o.payment_transaction_id = p.transaction_id WHERE p.transaction_id = ?',
-                    value: 'txn_789',
+                    data: 'txn_789',
                     expected: 'Either order exists OR payment status is VOIDED/REFUNDED'
                 }
             ],
@@ -947,11 +947,11 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Send request with extra unexpected fields',
                     action: 'api_call',
                     selector: 'POST /users',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         email: 'test@example.com',
                         password: 'password123',
                         unexpectedField: 'should_be_rejected',
@@ -960,22 +960,22 @@ export class BackendTestGenerator {
                     expected: '400 Bad Request - schema validation error'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Send request missing required fields',
                     action: 'api_call',
                     selector: 'POST /users',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         // missing email and password
                         name: 'Test User'
                     }),
                     expected: '400 Bad Request - required field missing'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Send request with wrong data types',
                     action: 'api_call',
                     selector: 'POST /users',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         email: 12345, // should be string
                         password: true, // should be string
                         age: 'twenty-five' // should be number
@@ -983,19 +983,19 @@ export class BackendTestGenerator {
                     expected: '400 Bad Request - type validation error'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Verify error response format consistency',
                     action: 'api_call',
                     selector: 'POST /users',
-                    value: JSON.stringify({}),
+                    data: JSON.stringify({}),
                     expected: 'Error response follows consistent schema with error codes and messages'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Test field size limits',
                     action: 'api_call',
                     selector: 'POST /users',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         email: 'a'.repeat(300) + '@example.com', // too long
                         password: 'a'.repeat(1000) // too long
                     }),
@@ -1028,50 +1028,50 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Force downstream timeout for all requests',
                     action: 'service_failure',
                     selector: 'payment_service',
-                    value: 'timeout_all_requests',
+                    data: 'timeout_all_requests',
                     expected: 'Payment service returns 504 Timeout for all calls'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Send initial API request that triggers retry',
                     action: 'api_call',
                     selector: 'POST /orders',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         cartId: 'cart_timeout_test',
                         paymentMethod: 'card'
                     }),
                     expected: 'Request fails and retry mechanism activates'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Monitor retry attempts over time',
                     action: 'monitor_requests',
                     selector: 'payment_service_calls',
-                    value: '60_seconds',
+                    data: '60_seconds',
                     expected: 'Retry frequency follows exponential backoff pattern'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Verify database load stays within limits',
                     action: 'db_monitor',
                     selector: 'connection_pool_usage',
-                    value: 'max_connections:10',
+                    data: 'max_connections:10',
                     expected: 'DB connections stay within safe limits'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Check for cascading failures in dependent services',
                     action: 'service_monitor',
                     selector: 'all_services',
-                    value: 'error_rate_threshold:5%',
+                    data: 'error_rate_threshold:5%',
                     expected: 'No service exceeds error rate threshold'
                 },
                 {
-                    id: '6',
+                    order: 6,
                     description: 'Verify system recovers when downstream comes back',
                     action: 'service_restore',
                     selector: 'payment_service',
@@ -1105,69 +1105,69 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Verify customer data exists before deletion',
                     action: 'db_query',
                     selector: 'SELECT COUNT(*) FROM customers WHERE id = ?',
-                    value: 'customer_gdpr_test',
+                    data: 'customer_gdpr_test',
                     expected: 'Customer exists in database'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Trigger GDPR deletion',
                     action: 'api_call',
                     selector: 'DELETE /customers/customer_gdpr_test',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         reason: 'gdpr_request',
                         confirmed: true
                     }),
                     expected: 'Deletion request accepted (202 status)'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Check orders are anonymized (not deleted)',
                     action: 'db_query',
                     selector: 'SELECT customer_data FROM orders WHERE customer_id = ?',
-                    value: 'customer_gdpr_test',
+                    data: 'customer_gdpr_test',
                     expected: 'Customer data anonymized or removed from orders'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Check logs are cleaned',
                     action: 'log_check',
                     selector: 'application_logs',
-                    value: 'customer_gdpr_test',
+                    data: 'customer_gdpr_test',
                     expected: 'PII removed from logs, no customer identifiers remain'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Check analytics data is anonymized',
                     action: 'db_query',
                     selector: 'SELECT user_id FROM analytics_events WHERE user_id = ?',
-                    value: 'customer_gdpr_test',
+                    data: 'customer_gdpr_test',
                     expected: 'No analytics events with customer ID'
                 },
                 {
-                    id: '6',
+                    order: 6,
                     description: 'Wait for async cleanup jobs',
                     action: 'wait',
                     selector: '30000ms',
                     expected: 'Background cleanup processes complete'
                 },
                 {
-                    id: '7',
+                    order: 7,
                     description: 'Verify third-party deletion triggered',
                     action: 'external_api_check',
                     selector: 'analytics_service',
-                    value: 'user_deleted:customer_gdpr_test',
+                    data: 'user_deleted:customer_gdpr_test',
                     expected: 'Third-party services notified of deletion'
                 },
                 {
-                    id: '8',
+                    order: 8,
                     description: 'Final verification - customer completely removed',
                     action: 'db_query',
                     selector: 'SELECT * FROM customers WHERE id = ?',
-                    value: 'customer_gdpr_test',
+                    data: 'customer_gdpr_test',
                     expected: 'No customer record exists'
                 }
             ],
@@ -1197,11 +1197,11 @@ export class BackendTestGenerator {
             ],
             steps: [
                 {
-                    id: '1',
+                    order: 1,
                     description: 'Trigger runtime exception with sensitive data',
                     action: 'api_call',
                     selector: 'POST /test/error-trigger',
-                    value: JSON.stringify({
+                    data: JSON.stringify({
                         creditCard: '4111111111111111',
                         ssn: '123-45-6789',
                         password: 'secret123',
@@ -1210,43 +1210,43 @@ export class BackendTestGenerator {
                     expected: 'Service throws runtime exception'
                 },
                 {
-                    id: '2',
+                    order: 2,
                     description: 'Check application logs for PII leakage',
                     action: 'log_check',
                     selector: 'application_logs',
-                    value: '4111111111111111|123-45-6789|secret123|sk_live_abcd123456789',
+                    data: '4111111111111111|123-45-6789|secret123|sk_live_abcd123456789',
                     expected: 'No sensitive data appears in logs'
                 },
                 {
-                    id: '3',
+                    order: 3,
                     description: 'Check error stack traces',
                     action: 'log_check',
                     selector: 'error_logs',
-                    value: 'creditCard|ssn|password|apiKey',
+                    data: 'creditCard|ssn|password|apiKey',
                     expected: 'Stack traces don\'t contain sensitive parameter names or values'
                 },
                 {
-                    id: '4',
+                    order: 4,
                     description: 'Check telemetry/metrics payloads',
                     action: 'telemetry_check',
                     selector: 'metrics_exporter',
-                    value: 'sensitive_data_patterns',
+                    data: 'sensitive_data_patterns',
                     expected: 'Telemetry payloads are sanitized'
                 },
                 {
-                    id: '5',
+                    order: 5,
                     description: 'Verify error alerting works',
                     action: 'alert_check',
                     selector: 'error_monitoring',
-                    value: 'runtime_exception_alert',
+                    data: 'runtime_exception_alert',
                     expected: 'Alert triggered without exposing sensitive data'
                 },
                 {
-                    id: '6',
+                    order: 6,
                     description: 'Test structured logging sanitization',
                     action: 'log_check',
                     selector: 'structured_logs',
-                    value: 'json_payload_sanitization',
+                    data: 'json_payload_sanitization',
                     expected: 'JSON log entries have sensitive fields masked or removed'
                 }
             ],

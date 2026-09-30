@@ -345,7 +345,8 @@ export class TestResultsProvider implements vscode.TreeDataProvider<ResultTreeIt
         if (test.steps && test.steps.length > 0) {
             md.appendMarkdown(`**Steps:**\n`);
             test.steps.forEach((step: any, idx: number) => {
-                md.appendMarkdown(`${idx + 1}. ${step.action}\n`);
+                const text = typeof step === 'string' ? step : (step.description || step.action);
+                md.appendMarkdown(`${idx + 1}. ${text}\n`);
             });
         }
         

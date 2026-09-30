@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getOpenRouterClient } from '../ai/openRouterClient';
 import { TestCase } from '../types';
+import { normalizeTestSteps } from '../utils/testSteps';
 
 export interface PageContext {
     url: string;
@@ -427,12 +428,12 @@ Return ONLY valid JSON, no markdown or explanation.`;
             category: 'smoke',
             priority: 'high',
             description: `Verify that the ${context.title} page loads without errors`,
-            steps: [
+            steps: normalizeTestSteps([
                 `Navigate to ${context.url}`,
                 'Wait for page to load',
                 'Verify page title is displayed',
                 'Check for console errors'
-            ],
+            ]),
             expectedResult: 'Page loads successfully without errors',
             automationLevel: 'full',
             targetElement: { path: context.url }
@@ -449,13 +450,13 @@ Return ONLY valid JSON, no markdown or explanation.`;
                 category: 'functional',
                 priority: 'high',
                 description: 'Verify that login form elements are visible and accessible',
-                steps: [
+                steps: normalizeTestSteps([
                     `Navigate to ${context.url}`,
                     'Locate login form',
                     'Verify email/username field is visible',
                     'Verify password field is visible',
                     'Verify login button is visible'
-                ],
+                ]),
                 expectedResult: 'All login form elements are displayed correctly',
                 automationLevel: 'full',
                 targetElement: { path: context.url }
@@ -466,13 +467,13 @@ Return ONLY valid JSON, no markdown or explanation.`;
                 category: 'functional',
                 priority: 'high',
                 description: 'Verify that login form rejects invalid credentials',
-                steps: [
+                steps: normalizeTestSteps([
                     `Navigate to ${context.url}`,
                     'Enter invalid email/username',
                     'Enter invalid password',
                     'Click login button',
                     'Verify error message is displayed'
-                ],
+                ]),
                 expectedResult: 'Error message is shown for invalid credentials',
                 automationLevel: 'full',
                 targetElement: { path: context.url }
@@ -488,12 +489,12 @@ Return ONLY valid JSON, no markdown or explanation.`;
                 category: 'functional',
                 priority: 'high',
                 description: 'Verify that signup form elements are visible',
-                steps: [
+                steps: normalizeTestSteps([
                     `Navigate to ${context.url}`,
                     'Locate signup form',
                     'Verify all required fields are visible',
                     'Verify signup button is visible'
-                ],
+                ]),
                 expectedResult: 'All signup form elements are displayed correctly',
                 automationLevel: 'full',
                 targetElement: { path: context.url }
@@ -509,13 +510,13 @@ Return ONLY valid JSON, no markdown or explanation.`;
                 category: 'functional',
                 priority: 'medium',
                 description: 'Verify search functionality works correctly',
-                steps: [
+                steps: normalizeTestSteps([
                     `Navigate to ${context.url}`,
                     'Locate search input field',
                     'Enter search query',
                     'Click search button or press Enter',
                     'Verify search results are displayed'
-                ],
+                ]),
                 expectedResult: 'Search returns relevant results',
                 automationLevel: 'full',
                 targetElement: { path: context.url }
@@ -531,7 +532,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
                 category: 'functional',
                 priority: 'medium',
                 description: 'Verify form validation works correctly',
-                steps: [
+                steps: normalizeTestSteps([
                     `Navigate to ${context.url}`,
                     'Locate form',
                     'Submit form without filling required fields',
@@ -539,7 +540,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
                     'Fill form with valid data',
                     'Submit form',
                     'Verify form submits successfully'
-                ],
+                ]),
                 expectedResult: 'Form validation works correctly',
                 automationLevel: 'full',
                 targetElement: { path: context.url }
@@ -555,12 +556,12 @@ Return ONLY valid JSON, no markdown or explanation.`;
                 category: 'ui',
                 priority: 'medium',
                 description: 'Verify that all interactive buttons respond to clicks',
-                steps: [
+                steps: normalizeTestSteps([
                     `Navigate to ${context.url}`,
                     'Locate all buttons on page',
                     'Click each button',
                     'Verify buttons respond to clicks'
-                ],
+                ]),
                 expectedResult: 'All buttons are clickable and functional',
                 automationLevel: 'full',
                 targetElement: { path: context.url }
@@ -576,13 +577,13 @@ Return ONLY valid JSON, no markdown or explanation.`;
                 category: 'ui',
                 priority: 'medium',
                 description: 'Verify that all links on the page are accessible',
-                steps: [
+                steps: normalizeTestSteps([
                     `Navigate to ${context.url}`,
                     'Locate all links on page',
                     'Verify links have valid href attributes',
                     'Click each link',
                     'Verify links navigate correctly'
-                ],
+                ]),
                 expectedResult: 'All links are accessible and functional',
                 automationLevel: 'full',
                 targetElement: { path: context.url }
@@ -598,13 +599,13 @@ Return ONLY valid JSON, no markdown or explanation.`;
                 category: 'ui',
                 priority: 'low',
                 description: 'Verify that static page content is displayed correctly',
-                steps: [
+                steps: normalizeTestSteps([
                     `Navigate to ${context.url}`,
                     'Verify page title is displayed',
                     'Verify main content is visible',
                     'Check for broken images',
                     'Verify page layout is correct'
-                ],
+                ]),
                 expectedResult: 'Static content is displayed correctly',
                 automationLevel: 'full',
                 targetElement: { path: context.url }

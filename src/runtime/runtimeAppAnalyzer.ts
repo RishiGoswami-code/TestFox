@@ -417,30 +417,30 @@ export class RuntimeAppAnalyzer {
                 status: 'pending',
                 steps: [
                     {
-                        id: '1',
+                        order: 1,
                         description: 'Navigate to application',
                         action: 'navigate',
                         selector: appInfo.url,
                         expected: 'Login form is visible'
                     },
                     {
-                        id: '2',
+                        order: 2,
                         description: 'Enter valid username',
                         action: 'input',
                         selector: appInfo.loginFormElements.find(e => e.type === 'email' || e.type === 'text')?.selector || 'input[type="text"]',
-                        value: 'test@example.com',
+                        data: 'test@example.com',
                         expected: 'Username field accepts input'
                     },
                     {
-                        id: '3',
+                        order: 3,
                         description: 'Enter valid password',
                         action: 'input',
                         selector: 'input[type="password"]',
-                        value: 'password123',
+                        data: 'password123',
                         expected: 'Password field accepts input'
                     },
                     {
-                        id: '4',
+                        order: 4,
                         description: 'Click login button',
                         action: 'click',
                         selector: 'button[type="submit"], input[type="submit"]',
@@ -461,30 +461,30 @@ export class RuntimeAppAnalyzer {
                 status: 'pending',
                 steps: [
                     {
-                        id: '1',
+                        order: 1,
                         description: 'Navigate to application',
                         action: 'navigate',
                         selector: appInfo.url,
                         expected: 'Login form is visible'
                     },
                     {
-                        id: '2',
+                        order: 2,
                         description: 'Enter invalid username',
                         action: 'input',
                         selector: appInfo.loginFormElements.find(e => e.type === 'email' || e.type === 'text')?.selector || 'input[type="text"]',
-                        value: 'invalid@example.com',
+                        data: 'invalid@example.com',
                         expected: 'Username field accepts input'
                     },
                     {
-                        id: '3',
+                        order: 3,
                         description: 'Enter invalid password',
                         action: 'input',
                         selector: 'input[type="password"]',
-                        value: 'wrongpassword',
+                        data: 'wrongpassword',
                         expected: 'Password field accepts input'
                     },
                     {
-                        id: '4',
+                        order: 4,
                         description: 'Click login button',
                         action: 'click',
                         selector: 'button[type="submit"], input[type="submit"]',
@@ -507,38 +507,38 @@ export class RuntimeAppAnalyzer {
                 status: 'pending',
                 steps: [
                     {
-                        id: '1',
+                        order: 1,
                         description: 'Navigate to signup page',
                         action: 'navigate',
                         selector: appInfo.url + '/signup',
                         expected: 'Signup form is visible'
                     },
                     {
-                        id: '2',
+                        order: 2,
                         description: 'Enter valid email',
                         action: 'input',
                         selector: appInfo.signupFormElements.find(e => e.type === 'email')?.selector || 'input[type="email"]',
-                        value: 'newuser@example.com',
+                        data: 'newuser@example.com',
                         expected: 'Email field accepts input'
                     },
                     {
-                        id: '3',
+                        order: 3,
                         description: 'Enter password',
                         action: 'input',
                         selector: 'input[type="password"]:nth-of-type(1)',
-                        value: 'password123',
+                        data: 'password123',
                         expected: 'Password field accepts input'
                     },
                     {
-                        id: '4',
+                        order: 4,
                         description: 'Confirm password',
                         action: 'input',
                         selector: 'input[type="password"]:nth-of-type(2)',
-                        value: 'password123',
+                        data: 'password123',
                         expected: 'Confirm password field accepts input'
                     },
                     {
-                        id: '5',
+                        order: 5,
                         description: 'Click signup button',
                         action: 'click',
                         selector: 'button[type="submit"], input[type="submit"]',
@@ -560,7 +560,7 @@ export class RuntimeAppAnalyzer {
                 type: 'UI/E2E',
                 status: 'pending',
                 steps: appInfo.navigationElements.map((nav, index) => ({
-                    id: (index + 1).toString(),
+                    order: index + 1,
                     description: `Click navigation link: ${nav.text}`,
                     action: 'click',
                     selector: nav.selector,
@@ -581,7 +581,7 @@ export class RuntimeAppAnalyzer {
                 type: 'UI/E2E',
                 status: 'pending',
                 steps: appInfo.buttons.map((button, index) => ({
-                    id: (index + 1).toString(),
+                    order: index + 1,
                     description: `Click button: ${button.text}`,
                     action: 'click',
                     selector: button.selector,

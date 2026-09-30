@@ -319,6 +319,10 @@ export interface TestStep {
     action: string;
     data?: string;
     expected?: string;
+    /** Explicit element selector; when absent the runner parses one from `action` */
+    selector?: string;
+    /** Human-readable description of the step (shown instead of `action` when present) */
+    description?: string;
 }
 
 export interface TestTarget {

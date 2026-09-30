@@ -8,6 +8,7 @@ import {
     TestCategory,
     TestStatus
 } from '../types';
+import { normalizeTestSteps } from '../utils/testSteps';
 
 /**
  * Central store for all test-related data
@@ -47,7 +48,8 @@ export class TestStore {
         // Load tests
         const storedTests = this.context.workspaceState.get<[string, TestCase][]>(this.TESTS_KEY);
         if (storedTests) {
-            this.tests = new Map(storedTests);
+            // Older versions saved some tests with string or legacy-shaped steps
+            this.tests = new Map(storedTests.map(([id, test]) => [id, { ...test, steps: normalizeTestSteps(test.steps) }]));
         }
 
         // Load results
@@ -128,8 +130,9 @@ export class TestStore {
             return false; // Duplicate, not added
         }
 
+        test = { ...test, steps: normalizeTestSteps(test.steps) };
         this.tests.set(test.id, test);
-        
+
         // Register with coverage tracker if provided
         if (coverageTracker) {
             const sourceFile = test.targetElement?.file || 

@@ -1,4 +1,5 @@
-import { TestCase, TestResult, TestStatus, TestEvidence, ProjectInfo } from '../types';
+import { TestCase, TestResult, TestStatus, TestEvidence, ProjectInfo, TestStep } from '../types';
+import { normalizeTestSteps } from '../utils/testSteps';
 import { AppRunner } from '../core/appRunner';
 import { BrowserRunner } from './browserRunner';
 import { ApiRunner } from './apiRunner';
@@ -107,7 +108,7 @@ export class TestRunner {
             await this.browserRunner.navigate(url);
 
             // Execute test steps
-            for (const step of test.steps) {
+            for (const step of normalizeTestSteps(test.steps)) {
                 await this.executeStep(step, test);
             }
 
@@ -626,7 +627,7 @@ export class TestRunner {
         };
     }
 
-    private async executeStep(step: { action: string; data?: string; expected?: string }, test: TestCase): Promise<void> {
+    private async executeStep(step: TestStep, test: TestCase): Promise<void> {
         const action = step.action.toLowerCase();
 
         if (!this.browserRunner) return;
@@ -637,7 +638,7 @@ export class TestRunner {
         }
 
         if (action.includes('click')) {
-            const selector = this.extractSelector(action);
+            const selector = step.selector || this.extractSelector(action);
             if (selector) {
                 // Dynamic Skip Check
                 const exists = await this.browserRunner.checkElementExists(selector);
@@ -649,8 +650,8 @@ export class TestRunner {
             }
         }
 
-        if (action.includes('enter') || action.includes('type') || action.includes('fill')) {
-            const selector = this.extractSelector(action);
+        if (action.includes('enter') || action.includes('type') || action.includes('fill') || action.includes('input')) {
+            const selector = step.selector || this.extractSelector(action);
             if (selector && step.data) {
                 // Dynamic Skip Check
                 const exists = await this.browserRunner.checkElementExists(selector);
