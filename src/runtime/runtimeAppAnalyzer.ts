@@ -303,7 +303,7 @@ export class RuntimeAppAnalyzer {
                     const inputElements = [];
 
                     for (const input of inputs) {
-                        const tagName = await input.evaluate(el => el.tagName.toLowerCase());
+                        const tagName = await input.evaluate((el: { tagName: string }) => el.tagName.toLowerCase());
                         const type = tagName === 'input' ? (await input.getAttribute('type') || 'text') : tagName;
                         const name = await input.getAttribute('name');
                         const placeholder = await input.getAttribute('placeholder') || '';
@@ -411,9 +411,10 @@ export class RuntimeAppAnalyzer {
                 id: `login-form-${Date.now()}`,
                 name: 'Login Form Validation',
                 description: 'Test login form with valid and invalid credentials',
-                category: 'Functional',
-                priority: 'High',
-                type: 'UI/E2E',
+                category: 'functional',
+                priority: 'high',
+                automationLevel: 'full',
+                expectedResult: 'Login is attempted with valid credentials without errors',
                 status: 'pending',
                 steps: [
                     {
@@ -455,9 +456,10 @@ export class RuntimeAppAnalyzer {
                 id: `login-invalid-${Date.now()}`,
                 name: 'Login Form - Invalid Credentials',
                 description: 'Test login form with invalid credentials',
-                category: 'Negative',
-                priority: 'Medium',
-                type: 'UI/E2E',
+                category: 'negative',
+                priority: 'medium',
+                automationLevel: 'full',
+                expectedResult: 'An error message is shown and the user is not logged in',
                 status: 'pending',
                 steps: [
                     {
@@ -501,9 +503,10 @@ export class RuntimeAppAnalyzer {
                 id: `signup-form-${Date.now()}`,
                 name: 'Signup Form Validation',
                 description: 'Test signup form with valid data',
-                category: 'Functional',
-                priority: 'High',
-                type: 'UI/E2E',
+                category: 'functional',
+                priority: 'high',
+                automationLevel: 'full',
+                expectedResult: 'Signup is attempted with valid data without errors',
                 status: 'pending',
                 steps: [
                     {
@@ -555,9 +558,10 @@ export class RuntimeAppAnalyzer {
                 id: `navigation-${Date.now()}`,
                 name: 'Navigation Links',
                 description: 'Test all navigation links are functional',
-                category: 'UI/E2E',
-                priority: 'Medium',
-                type: 'UI/E2E',
+                category: 'ui_e2e',
+                priority: 'medium',
+                automationLevel: 'full',
+                expectedResult: 'Every navigation link opens its target page',
                 status: 'pending',
                 steps: appInfo.navigationElements.map((nav, index) => ({
                     id: (index + 1).toString(),
@@ -576,9 +580,10 @@ export class RuntimeAppAnalyzer {
                 id: `buttons-${Date.now()}`,
                 name: 'Button Interactions',
                 description: 'Test all buttons are clickable and functional',
-                category: 'UI/E2E',
-                priority: 'Low',
-                type: 'UI/E2E',
+                category: 'ui_e2e',
+                priority: 'low',
+                automationLevel: 'full',
+                expectedResult: 'Every button is clickable without errors',
                 status: 'pending',
                 steps: appInfo.buttons.map((button, index) => ({
                     id: (index + 1).toString(),

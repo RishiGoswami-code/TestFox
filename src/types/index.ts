@@ -213,6 +213,7 @@ export const TEST_CATEGORIES: TestCategoryInfo[] = [
     { id: 'api', name: 'API Tests', description: 'Endpoint testing', group: 'functional', icon: 'cloud', automationDefault: 'full' },
     { id: 'ui', name: 'UI Tests', description: 'Interface interactions', group: 'functional', icon: 'browser', automationDefault: 'full' },
     { id: 'e2e', name: 'E2E Tests', description: 'End-to-end journeys', group: 'functional', icon: 'debug-alt', automationDefault: 'full' },
+    { id: 'ui_e2e', name: 'UI E2E Tests', description: 'Browser-driven UI journeys', group: 'functional', icon: 'browser', automationDefault: 'full' },
     { id: 'integration', name: 'Integration Tests', description: 'Component interactions', group: 'functional', icon: 'plug', automationDefault: 'full' },
     { id: 'database', name: 'Database Tests', description: 'Data integrity', group: 'functional', icon: 'database', automationDefault: 'full' },
     { id: 'payment', name: 'Payment Tests', description: 'Payment flows, card validation, and fraud checks', group: 'functional', icon: 'credit-card', automationDefault: 'full' },
@@ -228,6 +229,7 @@ export const TEST_CATEGORIES: TestCategoryInfo[] = [
     { id: 'negative', name: 'Negative Tests', description: 'Invalid inputs', group: 'edge_cases', icon: 'error', automationDefault: 'full' },
     { id: 'boundary', name: 'Boundary Tests', description: 'Edge conditions', group: 'edge_cases', icon: 'arrow-both', automationDefault: 'full' },
     { id: 'monkey', name: 'Monkey Tests', description: 'Random inputs', group: 'edge_cases', icon: 'bug', automationDefault: 'full' },
+    { id: 'edge_cases', name: 'Edge Case Tests', description: 'Unusual inputs and states', group: 'edge_cases', icon: 'warning', automationDefault: 'full' },
     
     // Manual/Exploratory
     { id: 'exploratory', name: 'Exploratory Tests', description: 'Creative testing', group: 'manual_exploratory', icon: 'compass', automationDefault: 'manual' },
